@@ -1,7 +1,7 @@
 // Mode hors ligne : la coque de l'app est mise en cache à l'installation,
 // puis chaque fichier est servi depuis le cache et rafraîchi en arrière-plan.
-const CACHE = 'calcul-minute-v2';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
+const CACHE = 'calcul-minute-v3';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'fonts/anton.woff2', 'fonts/work-sans.woff2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

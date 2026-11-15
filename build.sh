@@ -20,9 +20,11 @@ cat <<'HEAD'
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>@font-face{font-family:'Anton';font-weight:400;font-display:swap;src:url(fonts/anton.woff2) format('woff2')}@font-face{font-family:'Work Sans';font-weight:400 600;font-display:swap;src:url(fonts/work-sans.woff2) format('woff2')}</style>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
 HEAD
-head -n $((SPLIT-1)) calcul-minute.html
+# Les polices sont servies depuis fonts/ : on retire les liens Google Fonts, utiles seulement à l'artifact.
+head -n $((SPLIT-1)) calcul-minute.html | grep -v 'fonts.googleapis.com' | grep -v 'fonts.gstatic.com'
 printf '</head>\n<body>\n'
 tail -n +"$SPLIT" calcul-minute.html
 cat <<'TAIL'

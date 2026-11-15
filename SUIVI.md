@@ -15,6 +15,7 @@ Journal tenu à la fin de chaque session de travail. La session la plus récente
 6. **Web app installable.** Ajout de `build.sh`, `index.html`, `manifest.webmanifest`, `sw.js` et des icônes. Vérifié en local : manifeste lu, service worker enregistré, polices chargées, pas de défilement horizontal à 375 px.
 
 7. **Mise en ligne.** Avec l'accord du propriétaire, le dépôt est passé en public et GitHub Pages est activé sur `main` : https://pittilloni.github.io/calcul-minute/
+8. **Polices dans le dépôt.** Sur l'adresse publique, le navigateur de test bloquait Google Fonts. Anton et Work Sans (sous-ensemble latin) sont maintenant servies depuis `fonts/` ; la web app ne fait plus aucun appel externe.
 
 ### Décisions
 

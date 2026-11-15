@@ -15,6 +15,7 @@ C'est une web app installable (PWA) : elle s'ajoute à l'écran d'accueil du té
 | `build.sh` | Assemble `index.html` à partir de la source. À relancer après chaque modification : `sh build.sh`. |
 | `index.html` | La web app complète, générée. Ne pas la modifier à la main. |
 | `manifest.webmanifest`, `icons/` | Nom, couleurs et icônes pour l'installation. |
+| `fonts/` | Polices Anton et Work Sans (licence SIL Open Font License), servies avec l'app. |
 | `sw.js` | Mode hors ligne. |
 
 ## Mise en ligne
