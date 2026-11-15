@@ -11,6 +11,9 @@ Journal tenu à la fin de chaque session de travail. La session la plus récente
 3. **Vérification des contenus.** Ajout d'une section Sources dans l'app. Deux affirmations corrigées : le seuil de 3 secondes (présenté maintenant comme un repère d'enseignants, pas un résultat de recherche) et la liste des tables « les plus coriaces » (remplacée par l'effet de taille).
 4. **Mise sur GitHub** dans un dépôt privé, avec README, liens et ce journal.
 
+5. **Structure d'app.** Retour de l'utilisateur : « ça ressemble encore à du web ». L'écran est maintenant fixe, avec quatre onglets en bas (Séance, Parcours, Progrès, Repères), un bouton d'action ancré, des écrans qui glissent et une correction qui monte du bas.
+6. **Web app installable.** Ajout de `build.sh`, `index.html`, `manifest.webmanifest`, `sw.js` et des icônes. Vérifié en local : manifeste lu, service worker enregistré, polices chargées, pas de défilement horizontal à 375 px.
+
 ### Décisions
 
 - **Par cœur ou méthode** : la distinction suit la fiche Eduscol (faits numériques à mémoriser, procédures à appliquer).
@@ -28,10 +31,12 @@ Journal tenu à la fin de chaque session de travail. La session la plus récente
 
 ### Points ouverts
 
+- **Mise en ligne de la web app : pas faite.** Elle demande une adresse publique en HTTPS. Le dépôt est privé ; GitHub Pages sur un dépôt privé demande une offre payante, et le site publié est de toute façon public. À décider par le propriétaire.
+- L'installation sur un vrai téléphone (iOS et Android) n'a pas été testée.
+
 - La référence « Glénans » demandée comme source n'a pas été identifiée (seule l'école de voile est connue sous ce nom). À préciser.
 - La progression ne suit pas l'utilisateur d'un appareil à l'autre.
 - Le dépôt est privé et l'artifact aussi : les liens ne s'ouvrent que pour le propriétaire.
-- Le fichier est un fragment pour artifact Claude (sans `<html>`, `<head>`, `<body>`). Une publication ailleurs, par exemple GitHub Pages, demanderait une page complète.
 
 ### Liens
 

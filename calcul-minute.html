@@ -204,6 +204,52 @@ a{color:inherit}
 @keyframes rise{0%{opacity:0; transform:translateY(10px)} 25%{opacity:1} 100%{opacity:0; transform:translateY(-26px)}}
 @keyframes shake{25%{transform:translateX(-8px)} 50%{transform:translateX(7px)} 75%{transform:translateX(-4px)}}
 @media (prefers-reduced-motion:reduce){ *,*::before{animation:none!important; transition:none!important} }
+
+/* ---------- Coque d'app : écran fixe, onglets en bas, bouton ancré ---------- */
+:root{ --deep:#141c19; --s-head:clamp(2.4rem,10.5vw,3.1rem); --s-huge:clamp(4.5rem,23vw,6.4rem) }
+html,body{overflow:hidden}
+body{user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; overscroll-behavior:none; touch-action:manipulation}
+@media (min-width:600px){ body{background:var(--deep)} }
+#app{max-width:460px; height:100%; min-height:0; padding:0; display:flex; flex-direction:column; overflow:hidden; background:var(--slate)}
+.screen{flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); padding-block:12px 28px;
+  display:flex; flex-direction:column; gap:26px}
+.screen::-webkit-scrollbar{display:none}
+.screen > *{flex:none}
+.sel{user-select:text; -webkit-user-select:text}
+.large{font-size:var(--s-head); padding-top:10px}
+.dock{flex:none; display:flex; gap:10px; background:var(--slate);
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); padding-block:8px 12px}
+.dock .go{flex:1; width:auto; padding:0 16px}
+.tabs{flex:none; display:grid; grid-template-columns:repeat(4,1fr); background:var(--slate-2);
+  padding-left:max(6px,env(safe-area-inset-left,0px)); padding-right:max(6px,env(safe-area-inset-right,0px)); padding-block:6px}
+.tab{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:54px; font-size:.8125rem; font-weight:600; color:var(--chalk-soft); border-radius:14px; transition:transform .12s ease-out,color .15s}
+.tab svg{width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.tab[aria-current]{color:var(--yellow)}
+.tab:active{transform:scale(.94)}
+.rows{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px}
+.rows button{width:100%; display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:10px; text-align:left; min-height:68px; padding:10px 10px 10px 16px; background:var(--slate-2); transition:background .12s}
+.rows button:active{background:var(--slate-3)}
+.rows .name{min-width:0; display:flex; flex-direction:column; gap:2px}
+.rows .name strong{font-weight:600; line-height:1.3}
+.rows .name span{font-size:var(--s-small); color:var(--chalk-soft)}
+.rows li.focus button{background:var(--slate-3)}
+.rows li.focus .name span{color:var(--yellow)}
+.rows .stars .off{fill:var(--slate)}
+.chev{width:18px; height:18px; color:var(--chalk-soft); fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round}
+.today h1{font-size:var(--s-head)}
+.week{max-width:none}
+.navbar{display:flex; align-items:center; min-height:44px; margin-bottom:-14px}
+.play{flex:1; min-height:0; max-width:none; margin:0; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); padding-block:10px 12px}
+.fix{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
+.in-fade{animation:fade .18s ease-out}
+.in-push{animation:push .26s cubic-bezier(.2,.8,.2,1)}
+.in-pop{animation:pop .24s cubic-bezier(.2,.8,.2,1)}
+@keyframes fade{from{opacity:0}}
+@keyframes push{from{opacity:0; transform:translateX(28px)}}
+@keyframes pop{from{opacity:0; transform:translateX(-28px)}}
+@keyframes sheet{from{opacity:0; transform:translateY(48px)}}
+@media (prefers-reduced-motion:reduce){ *,*::before{animation:none!important; transition:none!important} }
 </style>
 
 <div id="app"></div>
@@ -473,7 +519,7 @@ function buildDaily(){
   return {focus:f,queue:out};
 }
 
-let view='home',viewArg=null,run=null,lastRun=null,resetArmed=false;
+let view='tabs',viewArg=null,run=null,lastRun=null,resetArmed=false;
 
 function startRun(mode,skillId){
   let queue=[];
@@ -507,12 +553,12 @@ function submit(){
     run.combo++;run.maxCombo=Math.max(run.maxCombo,run.combo);
     let g=q.retry?5:10+(ms<=sk.target?5:0);if(run.combo%5===0)g+=10;
     run.xp+=g;S.xp+=g;if(run.mode==='sprint')run.sprintScore++;
-    run.state='right';ans.classList.add('right');
+    run.state='right';ans.classList.add('right');buzz(12);
     const gain=document.getElementById('gain');gain.textContent=`+${g}`;gain.classList.remove('go-up');void gain.offsetWidth;gain.classList.add('go-up');
     setTimeout(()=>{if(run&&run.token===tok)next();},run.mode==='sprint'?240:540);
   }else{
     run.combo=0;if(!q.retry)run.wrong.push(q);
-    ans.classList.add('wrong','shake');
+    ans.classList.add('wrong','shake');buzz([30,50,30]);
     if(run.mode==='sprint'){
       run.state='show';
       document.getElementById('hintline').innerHTML=`Réponse : <b>${sp(q.answer)}</b>`;
@@ -556,71 +602,106 @@ function finish(){
 }
 
 /* ---------- Écrans ---------- */
+Object.assign(ICON,{
+  chev:'<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
+  tToday:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg>',
+  tPath:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>',
+  tProg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M12 20V4M19 20v-5"/></svg>',
+  tInfo:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2.5-1.6-5.5-1.6-8 0v13c2.5-1.6 5.5-1.6 8 0zM12 6c2.5-1.6 5.5-1.6 8 0v13c-2.5-1.6-5.5-1.6-8 0z"/></svg>'
+});
+let tab='today',anim='fade';
+const scrollMem={};
+const TABS=[['today','Séance',ICON.tToday],['path','Parcours',ICON.tPath],['progress','Progrès',ICON.tProg],['info','Repères',ICON.tInfo]];
+const tabsHTML=()=>`<nav class="tabs" aria-label="Navigation principale">${TABS.map(([id,l,ic])=>`<button class="tab" data-act="tab:${id}" ${tab===id?'aria-current="page"':''}>${ic}<span>${l}</span></button>`).join('')}</nav>`;
+function shell(inner,o={}){
+  const {dock='',tabs=true}=o;
+  $app.innerHTML=`<main class="screen in-${anim}" id="screen">${inner}</main>${dock?`<div class="dock">${dock}</div>`:''}${tabs?tabsHTML():''}`;
+  anim='fade';
+}
+function buzz(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 function render(){
-  if(view==='home')renderHome();
+  if(view==='tabs'){
+    ({today:renderToday,path:renderPath,progress:renderProgress,info:renderInfo})[tab]();
+    if(scrollMem[tab])document.getElementById('screen').scrollTop=scrollMem[tab];
+  }
   else if(view==='skill')renderSkill(viewArg);
   else if(view==='intro')renderIntro();
   else if(view==='results')renderResults();
-  window.scrollTo(0,0);
 }
-const topBar=()=>{const st=currentStreak(),lvl=levelInfo(S.xp);return `<header class="bar-top">
-  <span class="word">Calcul <b>Minute</b></span>
-  <span class="meta"><span class="tag" title="Jours d’affilée">${ICON.flame}${st} jour${st>1?'s':''}</span><span class="tag" title="${lvl.cur} / ${lvl.need} XP vers le niveau suivant">Niveau ${lvl.n}</span></span></header>`;};
 
-function renderHome(){
-  const f=focusSkill(),fi=SKILLS.indexOf(f),done=S.days.includes(dayISO(0)),known=knownFacts();
+function renderToday(){
+  const f=focusSkill(),fi=SKILLS.indexOf(f),done=S.days.includes(dayISO(0)),known=knownFacts(),st=currentStreak(),lvl=levelInfo(S.xp);
   const L=['dim','lun','mar','mer','jeu','ven','sam'];let week='';
   for(let i=-6;i<=0;i++){
     const d=new Date();d.setDate(d.getDate()+i);const ok=S.days.includes(iso(d));
     week+=`<div class="day ${ok?'done':''} ${i===0?'now':''}"><i>${ok?ICON.check:''}</i>${i===0?'auj.':L[d.getDay()]}</div>`;
   }
-  const steps=SKILLS.map(s=>`<li class="${s===f?'focus':''}"><button data-act="skill:${s.id}">
-      <span class="name"><strong>${s.title}</strong><span><span class="${s.kind==='coeur'?'kind-c':'kind-m'}">${KIND[s.kind].label}</span> · ${s===f?'étape en cours':s.short}</span></span>
-      ${starsHTML(stars(s.id))}</button></li>`).join('');
-  $app.innerHTML=`${topBar()}
-  <div class="home">
-    <div class="col-a rise">
-      <section class="today" aria-labelledby="t-today">
-        <h1 id="t-today">${done?'Séance faite':f.title}</h1>
-        <p>${done?'Ta série est sauvée pour aujourd’hui. Une séance en plus fait quand même progresser.':
-          `Ta séance du jour : 10 questions, environ 3 minutes. ${fi>0?'Six sur cette étape, quatre pour réviser les précédentes.':'C’est la toute première étape.'}`}</p>
-        <button class="go ${done?'alt':''}" data-act="daily">${ICON.play}${done?'Séance en plus':'Commencer'}</button>
-      </section>
-      <section aria-label="Tes 7 derniers jours"><div class="week">${week}</div></section>
-      <section class="base" aria-labelledby="t-base">
-        <h3 id="t-base">Ta base par cœur</h3>
-        <p class="figure"><b>${known}</b><span class="soft">réflexes sur 81</span></p>
-        <div class="track" aria-hidden="true"><i style="transform:scaleX(${known/81})"></i></div>
-        <p class="soft">9 amis de 10, 36 additions et 36 multiplications. Un fait devient un réflexe quand tu le réussis vite plusieurs fois de suite.</p>
-      </section>
+  shell(`<header class="bar-top">
+      <span class="word">Calcul <b>Minute</b></span>
+      <span class="meta"><span class="tag">${ICON.flame}${st} jour${st>1?'s':''}</span><span class="tag">Niveau ${lvl.n}</span></span></header>
+    <section class="today" aria-labelledby="t-today">
+      <h1 id="t-today">${done?'Séance faite':f.title}</h1>
+      <p>${done?'Ta série est sauvée pour aujourd’hui. Une séance en plus fait quand même progresser.':
+        `Ta séance du jour : 10 questions, environ 3 minutes. ${fi>0?'Six sur cette étape, quatre pour réviser les précédentes.':'C’est la toute première étape.'}`}</p>
+    </section>
+    <section aria-label="Tes 7 derniers jours"><div class="week">${week}</div></section>
+    <section class="base" aria-labelledby="t-base">
+      <h3 id="t-base">Ta base par cœur</h3>
+      <p class="figure"><b>${known}</b><span class="soft">réflexes sur 81</span></p>
+      <div class="track" aria-hidden="true"><i style="transform:scaleX(${known/81})"></i></div>
+    </section>`,
+    {dock:`<button class="go ${done?'alt':''}" data-act="daily">${ICON.play}${done?'Séance en plus':'Commencer'}</button>`});
+}
+function renderPath(){
+  const f=focusSkill();
+  const rows=SKILLS.map(s=>`<li class="${s===f?'focus':''}"><button data-act="skill:${s.id}">
+      <span class="name"><strong>${s.title}</strong><span>${KIND[s.kind].label} · ${s===f?'étape en cours':s.short}</span></span>
+      ${starsHTML(stars(s.id))}${ICON.chev}</button></li>`).join('');
+  shell(`<h1 class="large">Parcours</h1>
+    <p class="soft">10 étapes, de la base par cœur jusqu’aux pourcentages. Tu peux ouvrir n’importe laquelle.</p>
+    <ol class="rows">${rows}</ol>`);
+}
+function renderProgress(){
+  const known=knownFacts(),lvl=levelInfo(S.xp),st=currentStreak();
+  shell(`<h1 class="large">Progrès</h1>
+    <section class="base" aria-labelledby="t-base">
+      <h3 id="t-base">Ta base par cœur</h3>
+      <p class="figure"><b>${known}</b><span class="soft">réflexes sur 81</span></p>
+      <div class="track" aria-hidden="true"><i style="transform:scaleX(${known/81})"></i></div>
+      <p class="soft">9 amis de 10, 36 additions et 36 multiplications. Un fait devient un réflexe quand tu le réussis vite plusieurs fois de suite.</p>
+    </section>
+    <div class="facts">
+      <div><b>${lvl.n}</b><span>niveau, ${lvl.cur} / ${lvl.need} XP</span></div>
+      <div><b>${st}</b><span>jour${st>1?'s':''} d’affilée</span></div>
+      <div><b>${S.sessions}</b><span>séance${S.sessions>1?'s':''} du jour</span></div>
     </div>
-    <div class="col-b rise">
-      <section class="sheet" aria-labelledby="t-path">
-        <h3 id="t-path">Ton parcours</h3>
-        <ol class="path">${steps}</ol>
-      </section>
-      <section class="guide" aria-labelledby="t-guide">
-        <h2 id="t-guide">Par cœur ou méthode ?</h2>
-        <p>C’est la distinction des programmes de l’école : des faits numériques à mémoriser, et des procédures pour calculer le reste. Les deux soulagent la mémoire de travail.</p>
-        <div class="two">
-          <div><h3>Par cœur</h3><ul><li>Compléments à 10</li><li>Additions jusqu’à 20 et doubles</li><li>Tables de multiplication, dans les deux sens</li></ul></div>
-          <div><h3>Méthode</h3><ul><li>Passer par 10, presque-doubles</li><li>Ajouter ou retirer 9, 19, 29…</li><li>Découper, arrondir, pourcentages</li></ul></div>
-        </div>
-        <p>Pourquoi quelques minutes par jour : s’interroger fait mieux retenir que relire, et des révisions espacées font mieux retenir que des révisions groupées. L’app fait les deux.</p>
-      </section>
-      <section class="sources" aria-labelledby="t-src">
-        <h3 id="t-src" style="color:var(--chalk)">Sources</h3>
-        <ol>
-          <li>Eduscol, ministère de l’Éducation nationale, <a href="https://eduscol.education.gouv.fr/sites/default/files/document/2026evaluationdebutcm1mathematiquesficheinterventionmemoriserfaitsnumeriquesprocedures-129508.pdf" target="_blank" rel="noopener">« Mémoriser des faits numériques et des procédures »</a>, évaluations de début de CM1. Le sprint de 60 s reprend le format de son exercice 6 (tables en 1 minute).</li>
-          <li>Roediger &amp; Karpicke (2006), « Test-Enhanced Learning », <i>Psychological Science</i> 17(3) : s’interroger améliore la rétention à long terme.</li>
-          <li>Cepeda et al. (2006), « Distributed practice in verbal recall tasks », <i>Psychological Bulletin</i> 132(3) : méta-analyse de l’effet d’espacement.</li>
-          <li>Campbell &amp; Graham (1985), <i>Canadian Journal of Psychology</i> : temps de réponse et erreurs augmentent avec la taille des nombres (effet de taille).</li>
-        </ol>
-      </section>
-      <footer class="foot"><span>Ta progression reste dans ce navigateur.</span>
-        <button class="textbtn ${resetArmed?'danger':''}" data-act="reset">${resetArmed?'Confirmer : tout effacer':'Remettre à zéro'}</button></footer>
-    </div>
-  </div>`;
+    ${heatHTML('mult')}${heatHTML('add')}`);
+}
+function renderInfo(){
+  shell(`<h1 class="large">Repères</h1>
+    <section class="guide" aria-labelledby="t-guide">
+      <h3 id="t-guide">Par cœur ou méthode ?</h3>
+      <p>C’est la distinction des programmes de l’école : des faits numériques à mémoriser, et des procédures pour calculer le reste. Les deux soulagent la mémoire de travail.</p>
+      <div class="two">
+        <div><h3>Par cœur</h3><ul><li>Compléments à 10</li><li>Additions jusqu’à 20 et doubles</li><li>Tables de multiplication, dans les deux sens</li></ul></div>
+        <div><h3>Méthode</h3><ul><li>Passer par 10, presque-doubles</li><li>Ajouter ou retirer 9, 19, 29…</li><li>Découper, arrondir, pourcentages</li></ul></div>
+      </div>
+    </section>
+    <section class="guide" aria-labelledby="t-why">
+      <h3 id="t-why">Pourquoi 3 minutes par jour</h3>
+      <p>S’interroger fait mieux retenir que relire, et des révisions espacées font mieux retenir que des révisions groupées. L’app fait les deux : elle te questionne, et elle ressort plus souvent ce que tu rates.</p>
+    </section>
+    <section class="sources sel" aria-labelledby="t-src">
+      <h3 id="t-src" style="color:var(--chalk)">Sources</h3>
+      <ol>
+        <li>Eduscol, ministère de l’Éducation nationale, <a href="https://eduscol.education.gouv.fr/sites/default/files/document/2026evaluationdebutcm1mathematiquesficheinterventionmemoriserfaitsnumeriquesprocedures-129508.pdf" target="_blank" rel="noopener">« Mémoriser des faits numériques et des procédures »</a>, évaluations de début de CM1. Le sprint de 60 s reprend le format de son exercice 6 (tables en 1 minute).</li>
+        <li>Roediger &amp; Karpicke (2006), « Test-Enhanced Learning », <i>Psychological Science</i> 17(3) : s’interroger améliore la rétention à long terme.</li>
+        <li>Cepeda et al. (2006), « Distributed practice in verbal recall tasks », <i>Psychological Bulletin</i> 132(3) : méta-analyse de l’effet d’espacement.</li>
+        <li>Campbell &amp; Graham (1985), <i>Canadian Journal of Psychology</i> : temps de réponse et erreurs augmentent avec la taille des nombres (effet de taille).</li>
+      </ol>
+    </section>
+    <footer class="foot"><span>Ta progression reste dans ce navigateur.</span>
+      <button class="textbtn ${resetArmed?'danger':''}" data-act="reset">${resetArmed?'Confirmer : tout effacer':'Remettre à zéro'}</button></footer>`);
 }
 
 function heatHTML(type){
@@ -635,14 +716,13 @@ function heatHTML(type){
       h+=`<div class="${cls}" title="${x} ${op} ${y} : ${f?lab[f.box]:'pas encore vu'}">${type==='mult'?x*y:x+y}</div>`;
     }
   }
-  return `<section class="map" aria-labelledby="t-map"><h3 id="t-map">Ta carte ${type==='mult'?'des tables':'des additions'}</h3>
+  return `<section class="map" aria-labelledby="t-map-${type}"><h3 id="t-map-${type}">Ta carte ${type==='mult'?'des tables':'des additions'}</h3>
     <div class="heat">${h}</div>
     <div class="legend"><span><i style="background:var(--slate-2)"></i>pas vu</span><span><i style="background:var(--bad-field)"></i>raté</span><span><i style="background:var(--mid-field)"></i>en cours</span><span><i style="background:var(--good-field)"></i>presque</span><span><i style="background:var(--good)"></i>réflexe</span></div></section>`;
 }
 function renderSkill(id){
   const sk=SK[id],st=skillStats(id);markSeen(id);
-  $app.innerHTML=`${topBar()}<div class="page rise">
-    <button class="back" data-act="home">${ICON.back}Accueil</button>
+  shell(`<div class="navbar"><button class="back" data-act="back">${ICON.back}Parcours</button></div>
     <div class="head"><h2>${sk.title}</h2><p><span class="kind">${KIND[sk.kind].label}.</span> ${KIND[sk.kind].why()}</p></div>
     <article class="sheet lesson">${sk.lesson}</article>
     <div class="facts">
@@ -651,21 +731,15 @@ function renderSkill(id){
       <div><b>${S.best[id]||'–'}</b><span>record sprint</span></div>
     </div>
     ${id==='mult'?heatHTML('mult'):id==='add20'?heatHTML('add'):''}
-    <div class="acts">
-      <button class="go" data-act="practice:${id}">${ICON.play}10 questions</button>
-      <button class="go alt" data-act="sprint:${id}">Sprint 60 s</button>
-    </div>
-    <p class="soft">${starsHTML(stars(id))} ${nextStarHint(id)}</p>
-  </div>`;
+    <p class="soft">${starsHTML(stars(id))} ${nextStarHint(id)}</p>`,
+    {dock:`<button class="go" data-act="practice:${id}">${ICON.play}10 questions</button><button class="go alt" data-act="sprint:${id}">Sprint 60 s</button>`});
 }
 function renderIntro(){
   const f=focusSkill();
-  $app.innerHTML=`${topBar()}<div class="page rise">
-    <button class="back" data-act="home">${ICON.back}Accueil</button>
+  shell(`<div class="navbar"><button class="back" data-act="home">${ICON.back}Séance</button></div>
     <div class="head"><h2>${f.title}</h2><p>Nouvelle étape, ${SKILLS.indexOf(f)+1} sur ${SKILLS.length}. <span class="kind">${KIND[f.kind].label}.</span> ${KIND[f.kind].why()}</p></div>
-    <article class="sheet lesson">${f.lesson}</article>
-    <div class="acts"><button class="go" data-act="go-daily">${ICON.play}J’ai compris, on y va</button></div>
-  </div>`;
+    <article class="sheet lesson">${f.lesson}</article>`,
+    {dock:`<button class="go" data-act="go-daily">${ICON.play}J’ai compris, on y va</button>`,tabs:false});
 }
 function padHTML(){
   const k=['1','2','3','4','5','6','7','8','9'].map(d=>`<button class="key" data-act="key:${d}">${d}</button>`).join('');
@@ -699,18 +773,14 @@ function renderResults(){
     :pctOk===1?'Sans faute.':pctOk>=.8?'Très solide.':pctOk>=.6?'Bonne séance, ça rentre.':'Tes erreurs vont revenir dans les prochaines séances : c’est comme ça qu’on apprend.';
   const line=q=>q.unit?`${q.text} → ${sp(q.answer)} ${q.unit}`:q.text.includes('?')?q.text.replace('?',`<u>${sp(q.answer)}</u>`):`${q.text} = ${sp(q.answer)}`;
   const wrong=r.wrong.slice(0,8).map(q=>`<li><b>${line(q)}</b><span>${q.explain.replace(/<br>/g,' ')}</span></li>`).join('');
-  $app.innerHTML=`${topBar()}<div class="page rise">
-    <p class="score">${sprint?`${r.sprintScore}<span> en 60 s</span>`:`${r.firstOk}<span> / ${r.first}</span>`}</p>
-    <h2>${sprint?'Temps écoulé':r.mode==='daily'?'Séance terminée':'Entraînement terminé'}</h2>
-    <p>${mood}</p>
+  anim='push';
+  shell(`<p class="score">${sprint?`${r.sprintScore}<span> en 60 s</span>`:`${r.firstOk}<span> / ${r.first}</span>`}</p>
+    <div class="head"><h2>${sprint?'Temps écoulé':r.mode==='daily'?'Séance terminée':'Entraînement terminé'}</h2><p>${mood}</p></div>
     <div class="chips"><span class="tag">+${r.xp} XP</span><span class="tag">Meilleure série : ${r.maxCombo}</span><span class="tag">${starsHTML(stars(r.skillId))}</span></div>
     ${r.newDay?`<p class="flag">${ICON.flame}${S.streak>1?`${S.streak} jours d’affilée. Rendez-vous demain.`:'Premier jour de ta série. Rendez-vous demain.'}</p>`:''}
     ${wrong?`<section class="sheet"><h3>À retenir</h3><ul class="review">${wrong}</ul></section>`:''}
-    <p class="soft">${sk.title} : ${nextStarHint(r.skillId)}</p>
-    <div class="acts">
-      <button class="go" data-act="home">Retour à l’accueil</button>
-      <button class="go alt" data-act="${r.mode==='daily'?'daily':r.mode+':'+r.skillId}">${sprint?'Relancer un sprint':'Encore une'}</button>
-    </div></div>`;
+    <p class="soft">${sk.title} : ${nextStarHint(r.skillId)}</p>`,
+    {tabs:false,dock:`<button class="go alt" data-act="${r.mode==='daily'?'daily':r.mode+':'+r.skillId}">${sprint?'Relancer':'Encore une'}</button><button class="go" data-act="home">Terminer</button>`});
 }
 
 /* ---------- Interactions ---------- */
@@ -718,17 +788,21 @@ $app.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;
   const [act,arg]=b.dataset.act.split(':');
   if(act!=='reset')resetArmed=false;
+  const sc=document.getElementById('screen');
+  if(view==='tabs'&&sc)scrollMem[tab]=sc.scrollTop;
   switch(act){
-    case 'home':view='home';render();break;
-    case 'skill':view='skill';viewArg=arg;render();break;
-    case 'daily':{const f=focusSkill();if(!seen(f.id)){view='intro';render();}else startRun('daily');break;}
+    case 'tab':if(view==='tabs'&&tab===arg)scrollMem[tab]=0;view='tabs';tab=arg;render();break;
+    case 'home':anim=view==='intro'?'pop':'fade';view='tabs';tab='today';render();break;
+    case 'back':view='tabs';tab='path';anim='pop';render();break;
+    case 'skill':view='skill';viewArg=arg;tab='path';anim='push';render();break;
+    case 'daily':{const f=focusSkill();if(!seen(f.id)){view='intro';anim='push';render();}else startRun('daily');break;}
     case 'go-daily':markSeen(focusSkill().id);startRun('daily');break;
     case 'practice':markSeen(arg);startRun('practice',arg);break;
     case 'sprint':markSeen(arg);startRun('sprint',arg);break;
     case 'key':press(arg);break;
     case 'continue':next();break;
-    case 'quit':if(run){clearInterval(run.timer);run=null;}view='home';render();break;
-    case 'reset':if(resetArmed){S=blank();save();resetArmed=false;}else resetArmed=true;renderHome();break;
+    case 'quit':if(run){clearInterval(run.timer);run=null;}view='tabs';render();break;
+    case 'reset':if(resetArmed){S=blank();save();resetArmed=false;}else resetArmed=true;render();break;
   }
 });
 document.addEventListener('keydown',e=>{
@@ -736,7 +810,7 @@ document.addEventListener('keydown',e=>{
   if(/^\d$/.test(e.key)){press(e.key);e.preventDefault();}
   else if(e.key==='Backspace'){press('del');e.preventDefault();}
   else if(e.key==='Enter'){press('ok');e.preventDefault();}
-  else if(e.key==='Escape'){clearInterval(run.timer);run=null;view='home';render();}
+  else if(e.key==='Escape'){clearInterval(run.timer);run=null;view='tabs';render();}
 });
 render();
 </script>

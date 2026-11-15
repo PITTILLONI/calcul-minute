@@ -5,15 +5,27 @@ Entraînement quotidien au calcul mental, en français : 10 questions, environ 3
 - **Par cœur** : compléments à 10, additions jusqu'à 20, tables de multiplication (dans les deux sens).
 - **Méthode** : doubles et moitiés, additions et soustractions à deux chiffres, grandes multiplications, pourcentages, soldes.
 
-Tout tient dans `calcul-minute.html` (HTML, CSS et JavaScript, sans dépendance à installer). La progression est enregistrée dans le navigateur (`localStorage`).
+C'est une web app installable (PWA) : elle s'ajoute à l'écran d'accueil du téléphone, s'ouvre en plein écran et fonctionne hors ligne après la première visite. La progression est enregistrée dans le navigateur (`localStorage`).
 
-Le fichier est écrit pour être publié comme artifact Claude : il ne contient pas de balises `<html>`, `<head>` ni `<body>`. Ouvert tel quel dans un navigateur, il fonctionne quand même.
+## Fichiers
+
+| Fichier | Rôle |
+| --- | --- |
+| `calcul-minute.html` | La source de l'app (HTML, CSS, JavaScript). C'est aussi le fragment publié comme artifact Claude. |
+| `build.sh` | Assemble `index.html` à partir de la source. À relancer après chaque modification : `sh build.sh`. |
+| `index.html` | La web app complète, générée. Ne pas la modifier à la main. |
+| `manifest.webmanifest`, `icons/` | Nom, couleurs et icônes pour l'installation. |
+| `sw.js` | Mode hors ligne. |
+
+## Mise en ligne
+
+Pas encore faite. La web app a besoin d'une adresse en HTTPS (GitHub Pages, Vercel…) pour être installable sur un téléphone. Le dépôt est privé : voir `SUIVI.md`, points ouverts.
 
 Les sources (Eduscol et articles de recherche) sont listées en bas de l'écran d'accueil de l'app.
 
 ## Liens
 
-- **App en ligne** : https://claude.ai/artifact/BaY4a6BN3MzHuvqdK6782v (artifact Claude privé : seul son propriétaire, et les personnes à qui il le partage, peuvent l'ouvrir)
+- **Aperçu en ligne** : https://claude.ai/artifact/BaY4a6BN3MzHuvqdK6782v (artifact Claude privé : seul son propriétaire, et les personnes à qui il le partage, peuvent l'ouvrir)
 - **Code** : https://github.com/PITTILLONI/calcul-minute
 - **Suivi du projet** : [SUIVI.md](SUIVI.md), mis à jour à la fin de chaque session de travail
 

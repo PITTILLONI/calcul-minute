@@ -10,5 +10,6 @@ Ces règles viennent du propriétaire du projet. Elles s'appliquent à chaque se
 
 ## Repères
 
-- L'app tient dans `calcul-minute.html`, un fragment pour artifact Claude (sans `<html>`, `<head>`, `<body>`).
+- La source est `calcul-minute.html`, un fragment pour artifact Claude (sans `<html>`, `<head>`, `<body>`). Après chaque modification, lancer `sh build.sh` pour régénérer `index.html` (la web app installable), et changer le nom du cache dans `sw.js` (`calcul-minute-vN`).
+- L'app doit se comporter comme une app, pas comme une page web : écran fixe, onglets en bas, bouton d'action ancré, pas de longue page qui défile.
 - Artifact à mettre à jour, sans en créer un nouveau : https://claude.ai/artifact/BaY4a6BN3MzHuvqdK6782v
