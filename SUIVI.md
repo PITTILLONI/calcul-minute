@@ -17,6 +17,7 @@ Journal tenu à la fin de chaque session de travail. La session la plus récente
 - **Répétition** : système de boîtes de type Leitner par fait numérique ; un fait raté revient plus souvent.
 - **Sauvegarde** : progression dans le `localStorage` du navigateur, pas de compte ni de serveur.
 - **Design** : un seul thème sombre (ardoise). Pas de photos, pas de vidéo, peu d'animations : c'est un outil, pas une vitrine.
+- **Rien en local** : tout va sur git (code, notes, règles de travail dans `CLAUDE.md`). La session n'est pas déplacée dans un dossier local.
 - **Règle de contenu** : ne rien inventer. Toute affirmation vient d'une source lue ou d'une identité arithmétique vérifiée.
 
 ### Vérifications
