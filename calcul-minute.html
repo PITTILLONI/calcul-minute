@@ -1,0 +1,742 @@
+<title>Calcul Minute</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;600&display=swap">
+<style>
+/* Direction « l'objet est la page » : l'app est une ardoise d'écolier (fond ardoise, craie blanche, craie jaune pour l'action),
+   les leçons sont des feuilles de cahier perforées posées dessus. Un seul monde visuel, sombre, dans les deux thèmes. */
+:root{
+  --slate:#1d2824;      /* le fond : l'ardoise */
+  --slate-2:#26332e;    /* une marche de ton pour les surfaces */
+  --slate-3:#33433c;    /* touches, éléments pressables */
+  --chalk:#eef0e8;      /* l'encre : la craie blanche */
+  --chalk-soft:#b4c0b8; /* notes secondaires */
+  --yellow:#f2d35b;     /* la craie jaune : l'action, la réponse, la série */
+  --on-yellow:#1d2824;
+  --paper:#e6e9e4;      /* la feuille de cahier */
+  --on-paper:#1d2824;
+  --on-paper-soft:#4f5b55;
+  --good:#9cd9a8; --good-field:#2c4a37;
+  --bad:#ff9e94;  --bad-field:#4a2c2b;
+  --mid:#f2d35b;  --mid-field:#4a4326;
+  --display:"Anton","Impact","Arial Narrow Bold",sans-serif;
+  --text:"Work Sans","Helvetica Neue",Arial,sans-serif;
+  --s-small:.875rem; --s-body:1.0625rem; --s-lead:1.3125rem;
+  --s-head:clamp(2.5rem,11vw,4.25rem); --s-huge:clamp(4.5rem,24vw,8.5rem);
+  --pad:max(16px,env(safe-area-inset-left,0px));
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--slate); color:var(--chalk); font-family:var(--text); font-size:var(--s-body); line-height:1.55; -webkit-tap-highlight-color:transparent}
+#app{max-width:1080px; margin:0 auto; min-height:100%; padding-left:var(--pad); padding-right:max(16px,env(safe-area-inset-right,0px)); padding-block:16px 48px}
+h1,h2,h3{margin:0; font-family:var(--display); font-weight:400; text-transform:uppercase; letter-spacing:-.005em; line-height:.95; text-wrap:balance}
+h2{font-size:var(--s-head)}
+h3{font-size:var(--s-lead); letter-spacing:.01em; line-height:1.1}
+p{margin:0}
+button{font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; touch-action:manipulation}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--yellow); outline-offset:3px}
+.soft{color:var(--chalk-soft)}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+/* Barre du haut */
+.bar-top{display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:48px}
+.word{white-space:nowrap; font-family:var(--display); font-size:1.5rem; text-transform:uppercase; letter-spacing:.01em; line-height:1}
+.word b{font-weight:400; color:var(--yellow)}
+.meta{display:flex; gap:8px; align-items:center}
+.tag{display:inline-flex; align-items:center; gap:6px; min-height:36px; padding:0 14px; border-radius:999px; background:var(--slate-2); font-weight:600; font-size:var(--s-small); font-variant-numeric:tabular-nums; white-space:nowrap}
+.tag svg{width:18px; height:18px; color:var(--yellow)}
+
+/* Accueil */
+.home{display:grid; gap:40px; padding-top:20px}
+@media (min-width:900px){ .home{grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:56px; align-items:start} }
+.col-a,.col-b{display:flex; flex-direction:column; gap:28px; min-width:0}
+.today{display:flex; flex-direction:column; gap:18px}
+.today h1{font-size:var(--s-head); color:var(--chalk)}
+.today p{max-width:36ch}
+.go{display:flex; align-items:center; justify-content:center; gap:10px; min-height:60px; padding:0 32px; border-radius:999px; background:var(--yellow); color:var(--on-yellow); font-weight:600; font-size:var(--s-lead); transition:transform .15s ease-out}
+.go:active{transform:scale(.97)}
+.go svg{width:22px; height:22px}
+.go.alt{background:var(--slate-3); color:var(--chalk)}
+@media (max-width:899px){ .today .go{width:100%} }
+@media (min-width:900px){ .today .go{align-self:flex-start} }
+
+.week{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; max-width:420px}
+.day{display:flex; flex-direction:column; align-items:center; gap:6px; font-size:var(--s-small); color:var(--chalk-soft); font-weight:600}
+.day i{width:36px; height:36px; border-radius:50%; background:var(--slate-2); display:grid; place-items:center; color:var(--on-yellow)}
+.day i svg{width:18px; height:18px}
+.day.done i{background:var(--yellow)}
+.day.now{color:var(--chalk)}
+.day.now:not(.done) i{background:var(--slate-3)}
+
+.base{background:var(--slate-2); padding:22px; display:flex; flex-direction:column; gap:12px}
+.base .figure{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.base .figure b{font-family:var(--display); font-weight:400; font-size:var(--s-head); line-height:.9; color:var(--yellow); font-variant-numeric:tabular-nums}
+.track{height:10px; border-radius:999px; background:var(--slate-3); overflow:hidden}
+.track i{display:block; height:100%; background:var(--yellow); border-radius:inherit; transition:transform .4s ease-out; transform-origin:left}
+
+/* La feuille de cahier perforée */
+.sheet{background:var(--paper); color:var(--on-paper); padding:24px 20px 26px 44px; position:relative}
+.sheet::before{content:""; position:absolute; left:0; top:0; bottom:0; width:32px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='34'%3E%3Ccircle cx='16' cy='17' r='6' fill='%231d2824'/%3E%3C/svg%3E"); background-size:32px 34px; background-repeat:repeat-y}
+.sheet h3,.sheet h2{color:var(--on-paper)}
+.sheet .soft{color:var(--on-paper-soft)}
+.sheet b{font-weight:600}
+
+.path{list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column}
+.path button{width:100%; display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; text-align:left; min-height:64px; padding:10px 12px; margin-inline:-12px; width:calc(100% + 24px); transition:background .15s}
+.path button:hover{background:rgba(29,40,36,.06)}
+.path .name{display:flex; flex-direction:column; gap:2px; min-width:0}
+.path .name strong{font-weight:600; line-height:1.3}
+.path .name span{font-size:var(--s-small); color:var(--on-paper-soft)}
+.path li.focus button{background:var(--slate); color:var(--chalk)}
+.path li.focus .name span{color:var(--yellow)}
+.kind-c{color:#7a5a00} .kind-m{color:#2b5a46}
+.path li.focus .kind-c,.path li.focus .kind-m{color:var(--yellow)}
+
+.stars{display:inline-flex; gap:2px}
+.stars svg{width:20px; height:20px}
+.stars .on{fill:var(--yellow)} .stars .off{fill:var(--slate-3)}
+.sheet .stars .on{fill:#c99a00} .sheet .stars .off{fill:#d3d2c8}
+.sheet li.focus .stars .on{fill:var(--yellow)} .sheet li.focus .stars .off{fill:var(--slate-3)}
+
+.guide{display:flex; flex-direction:column; gap:18px}
+.guide .two{display:grid; gap:18px}
+@media (min-width:520px){ .guide .two{grid-template-columns:1fr 1fr} }
+.guide ul{margin:6px 0 0; padding-left:20px; display:flex; flex-direction:column; gap:2px}
+.guide h3 + p{margin-top:4px}
+.cite{font-size:var(--s-small); color:var(--chalk-soft); max-width:60ch}
+.sources{display:flex; flex-direction:column; gap:10px; font-size:var(--s-small); color:var(--chalk-soft)}
+.sources ol{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px}
+.sources a{color:var(--chalk); text-underline-offset:3px}
+.foot{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; font-size:var(--s-small); color:var(--chalk-soft)}
+.textbtn{min-height:44px; padding:0 4px; text-decoration:underline; text-underline-offset:4px; color:var(--chalk-soft)}
+.textbtn.danger{color:var(--bad)}
+
+/* Fiche d'étape */
+.page{display:flex; flex-direction:column; gap:26px; max-width:640px; margin:0 auto; padding-top:8px}
+.back{display:inline-flex; align-items:center; gap:6px; min-height:44px; font-weight:600; color:var(--chalk-soft)}
+.back svg{width:20px; height:20px}
+.head{display:flex; flex-direction:column; gap:12px}
+.head .kind{font-weight:600; color:var(--yellow)}
+.lesson{display:flex; flex-direction:column; gap:14px}
+.lesson ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px}
+.ex{font-family:var(--display); font-size:1.35rem; letter-spacing:.01em; line-height:1.25; font-variant-numeric:tabular-nums; background:var(--slate); color:var(--chalk); padding:10px 14px; overflow-x:auto}
+.pairs{display:flex; flex-wrap:wrap; gap:8px}
+.pairs span{font-family:var(--display); font-size:1.35rem; background:var(--slate); color:var(--yellow); padding:4px 12px; font-variant-numeric:tabular-nums}
+.ptable{display:grid; grid-template-columns:auto 1fr; gap:6px 16px}
+.ptable b{font-family:var(--display); font-weight:400; font-size:1.2rem; font-variant-numeric:tabular-nums}
+.facts{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.facts div{background:var(--slate-2); padding:14px 12px; display:flex; flex-direction:column; gap:4px; min-width:0}
+.facts b{font-family:var(--display); font-weight:400; font-size:1.9rem; line-height:1; font-variant-numeric:tabular-nums}
+.facts span{font-size:var(--s-small); color:var(--chalk-soft)}
+.acts{display:flex; flex-direction:column; gap:10px}
+@media (min-width:520px){ .acts{flex-direction:row} .acts .go{flex:1} }
+
+/* Carte des tables */
+.map{display:flex; flex-direction:column; gap:12px}
+.heat{display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:4px}
+.heat div{aspect-ratio:1; display:grid; place-items:center; font-size:var(--s-small); font-weight:600; font-variant-numeric:tabular-nums; background:var(--slate-2); color:var(--chalk-soft)}
+.heat .h{background:none; font-family:var(--display); font-weight:400; font-size:1.1rem; color:var(--chalk)}
+.heat .b0{background:var(--bad-field); color:var(--bad)}
+.heat .b1{background:var(--mid-field); color:var(--mid)}
+.heat .b2{background:var(--good-field); color:var(--good)}
+.heat .b3{background:var(--good); color:var(--slate)}
+.legend{display:flex; gap:6px 14px; flex-wrap:wrap; font-size:var(--s-small); color:var(--chalk-soft)}
+.legend i{display:inline-block; width:14px; height:14px; vertical-align:-2px; margin-right:6px}
+
+/* L'ardoise : écran d'exercice */
+.play{display:flex; flex-direction:column; gap:12px; min-height:calc(100svh - 64px); max-width:520px; margin:0 auto}
+.ptop{display:flex; align-items:center; gap:12px; min-height:48px}
+.round{width:44px; height:44px; border-radius:50%; display:grid; place-items:center; background:var(--slate-2); flex:none}
+.round svg{width:20px; height:20px}
+.ticks{flex:1; display:flex; gap:4px; height:10px}
+.ticks i{flex:1; border-radius:999px; background:var(--slate-3); transition:background .2s}
+.ticks i.ok{background:var(--good)} .ticks i.ko{background:var(--bad)} .ticks i.now{background:var(--chalk)}
+.timer{flex:1; height:10px; border-radius:999px; background:var(--slate-3); overflow:hidden}
+.timer i{display:block; height:100%; width:100%; background:var(--yellow); transform-origin:left; transition:transform .1s linear}
+.streak{background:var(--yellow); color:var(--on-yellow)}
+.streak svg{color:var(--on-yellow)}
+.board{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; position:relative; padding-block:8px}
+.board .what{font-size:var(--s-small); color:var(--chalk-soft); font-weight:600}
+.q{font-family:var(--display); text-transform:none; font-size:var(--s-huge); line-height:.95; letter-spacing:-.01em; font-variant-numeric:tabular-nums; max-width:100%}
+.q.long{font-family:var(--text); font-size:var(--s-lead); line-height:1.4; font-weight:600; max-width:26ch}
+.ans{min-width:160px; min-height:84px; padding:0 18px; display:flex; align-items:center; justify-content:center; gap:8px; font-family:var(--display); font-size:clamp(3.2rem,16vw,4.6rem); line-height:1; color:var(--yellow); background:var(--slate-2); font-variant-numeric:tabular-nums}
+.ans .unit{font-family:var(--text); font-size:var(--s-lead); color:var(--chalk-soft)}
+.caret{width:4px; height:52px; background:var(--yellow); animation:blink 1s steps(1) infinite}
+.ans.right{color:var(--good); background:var(--good-field)}
+.ans.wrong{color:var(--bad); background:var(--bad-field); text-decoration:line-through; text-decoration-thickness:4px}
+.ans.shake{animation:shake .32s ease-out}
+.gain{position:absolute; right:6%; top:18%; font-family:var(--display); font-size:2.2rem; color:var(--good); opacity:0; pointer-events:none}
+.gain.go-up{animation:rise .7s ease-out}
+.pad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px 18px; justify-items:center; padding-bottom:max(4px,env(safe-area-inset-bottom,0px))}
+.key{width:100%; max-width:96px; height:64px; border-radius:999px; background:var(--slate-3); font-family:var(--display); font-size:2rem; line-height:1; display:grid; place-items:center; transition:transform .12s ease-out, background .12s; font-variant-numeric:tabular-nums}
+.key:active{transform:scale(.93); background:var(--slate-2)}
+.key svg{width:28px; height:28px}
+.key.ok{background:var(--yellow); color:var(--on-yellow); font-family:var(--text); font-weight:600; font-size:1.1rem}
+.hint-line{text-align:center; font-size:var(--s-small); color:var(--chalk-soft); min-height:22px}
+.fix{background:var(--paper); color:var(--on-paper); padding:20px 18px 18px 44px; position:relative; display:flex; flex-direction:column; gap:12px}
+.fix::before{content:""; position:absolute; left:0; top:0; bottom:0; width:32px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='34'%3E%3Ccircle cx='16' cy='17' r='6' fill='%231d2824'/%3E%3C/svg%3E"); background-size:32px 34px}
+.fix .t{font-weight:600}
+.fix .t b{font-family:var(--display); font-weight:400; font-size:1.8rem; line-height:1; vertical-align:-3px; font-variant-numeric:tabular-nums}
+.fix .soft{color:var(--on-paper-soft); font-size:var(--s-small)}
+.fix .go{background:var(--slate); color:var(--chalk); min-height:56px}
+
+/* Résultats */
+.score{font-family:var(--display); font-size:var(--s-huge); line-height:.9; color:var(--yellow); font-variant-numeric:tabular-nums}
+.score span{font-size:.4em; color:var(--chalk-soft)}
+.chips{display:flex; gap:8px; flex-wrap:wrap}
+.flag{background:var(--yellow); color:var(--on-yellow); padding:14px 16px; font-weight:600; display:flex; gap:10px; align-items:center}
+.flag svg{width:22px; height:22px; flex:none}
+.review{list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:14px}
+.review b{font-family:var(--display); font-weight:400; font-size:1.35rem; letter-spacing:.01em; font-variant-numeric:tabular-nums; display:block}
+.review u{text-decoration-thickness:3px; text-underline-offset:4px}
+.review span{color:var(--on-paper-soft); font-size:var(--s-small); display:block}
+
+/* Entrées */
+.rise > *{animation:enter .4s ease-out both}
+.rise > *:nth-child(2){animation-delay:.06s} .rise > *:nth-child(3){animation-delay:.12s} .rise > *:nth-child(4){animation-delay:.18s}
+.rise > *:nth-child(5){animation-delay:.24s} .rise > *:nth-child(6){animation-delay:.3s} .rise > *:nth-child(7){animation-delay:.36s}
+@keyframes enter{from{opacity:0; transform:translateY(18px)}}
+@keyframes blink{50%{opacity:0}}
+@keyframes rise{0%{opacity:0; transform:translateY(10px)} 25%{opacity:1} 100%{opacity:0; transform:translateY(-26px)}}
+@keyframes shake{25%{transform:translateX(-8px)} 50%{transform:translateX(7px)} 75%{transform:translateX(-4px)}}
+@media (prefers-reduced-motion:reduce){ *,*::before{animation:none!important; transition:none!important} }
+</style>
+
+<div id="app"></div>
+
+<script>
+/* ---------- Outils ---------- */
+const $app=document.getElementById('app');
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sp=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+
+const ICON={
+  flame:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2c1 3.5-1.5 5-1.5 8 0 1.4 1 2.5 2.3 2.5 1.6 0 2.4-1.3 2.2-3.2C17.6 11 19 13.4 19 15.5 19 19.1 15.9 22 12 22s-7-2.9-7-6.5C5 10.6 9.6 7.6 12 2z"/></svg>',
+  star:c=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path class="${c}" d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4L2.8 9.5l6.4-.8z"/></svg>`,
+  close:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  back:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  check:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  del:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h11v14H9l-6-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 9l5 6M17 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>'
+};
+
+/* ---------- Sauvegarde (dans ce navigateur) ---------- */
+const KEY='calcul-minute-v1';
+const blank=()=>({xp:0,streak:0,lastDay:null,days:[],skills:{},facts:{},best:{},sessions:0});
+function load(){try{const r=localStorage.getItem(KEY);if(r)return Object.assign(blank(),JSON.parse(r));}catch(e){}return blank();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+let S=load();
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; // taste-skill-ignore (date)
+const dayISO=off=>{const d=new Date();d.setDate(d.getDate()+off);return iso(d);};
+const currentStreak=()=>(S.lastDay===dayISO(0)||S.lastDay===dayISO(-1))?S.streak:0;
+
+/* ---------- Faits numériques à mémoriser ---------- */
+const F_AMIS=[],F_ADD=[],F_MUL=[],F_DIV=[];
+for(let a=1;a<=9;a++)F_AMIS.push({key:'c'+a,a});
+for(let x=2;x<=9;x++)for(let y=x;y<=9;y++){F_ADD.push({key:`a${x}+${y}`,x,y});F_MUL.push({key:`m${x}x${y}`,x,y});}
+for(let x=2;x<=9;x++)for(let y=2;y<=9;y++)F_DIV.push({key:`d${x*y}/${x}`,x,y});
+let lastKey=null;
+function pickFact(list){
+  const W=[10,6,3,1.5,.7];let tot=0;
+  const w=list.map(f=>{const s=S.facts[f.key];let x=s?W[s.box]:6;if(f.key===lastKey)x*=.02;tot+=x;return x;});
+  let r=Math.random()*tot;
+  for(let i=0;i<list.length;i++){r-=w[i];if(r<=0){lastKey=list[i].key;return list[i];}}
+  lastKey=list[list.length-1].key;return list[list.length-1];
+}
+const swap=(x,y)=>Math.random()<.5?[x,y]:[y,x];
+
+/* ---------- Générateurs de questions ---------- */
+function genAmis(){
+  const {key,a}=pickFact(F_AMIS);const b=10-a;
+  return {key,text:Math.random()<.5?`${a} + ? = 10`:`? + ${a} = 10`,answer:b,
+    explain:`${a} et ${b} sont des amis de 10 : ${a} + ${b} = 10.<br>Sur tes 10 doigts : ${a} levés, il en reste <b>${b}</b> baissés.`};
+}
+function explainAdd(x,y){
+  const s=x+y,big=Math.max(x,y),small=Math.min(x,y);
+  if(x===y)return `C’est un double : ${x} + ${x} = <b>${s}</b>. Les doubles sont tes repères.`;
+  if(big-small===1)return `Presque un double : ${small} + ${small} = ${2*small}, plus 1 → <b>${s}</b>.`;
+  if(s<=10)return `Pars du plus grand et avance : ${big}, puis + ${small} → <b>${s}</b>.`;
+  const need=10-big,r=small-need;
+  return `Passe par 10 : ${big} + ${need} = 10. Il reste ${r} (car ${small} = ${need} + ${r}). 10 + ${r} = <b>${s}</b>.`;
+}
+function genAdd20(){const {key,x,y}=pickFact(F_ADD);const [p,q]=swap(x,y);return {key,text:`${p} + ${q}`,answer:x+y,explain:explainAdd(x,y)};}
+function genDouble(){
+  if(Math.random()<.5){
+    let n=rnd(12,49);if(n%10===0)n++;const u=n%10,t=n-u;
+    return {text:`Double de ${n}`,answer:2*n,explain:`Coupe en deux morceaux : double de ${t} = ${2*t}, double de ${u} = ${2*u}. ${2*t} + ${2*u} = <b>${2*n}</b>.`};
+  }
+  let n=2*rnd(11,99);if(n%10===0)n+=2;const u=n%10,t=n-u;
+  return {text:`Moitié de ${n}`,answer:n/2,explain:`Coupe en deux morceaux : moitié de ${t} = ${t/2}, moitié de ${u} = ${u/2}. ${t/2} + ${u/2} = <b>${n/2}</b>.`};
+}
+function genAdd2(){
+  const a=rnd(14,78),b=rnd(13,59),s=a+b,u=b%10,t=b-u;let explain;
+  if(u>=8){const up=10-u,B=b+up;explain=`${b} est tout près de ${B}. Ajoute ${B} puis retire ${up} : ${a} + ${B} = ${a+B}, − ${up} → <b>${s}</b>.`;}
+  else if(u===0)explain=`On ajoute seulement des dizaines : ${a} + ${t} = <b>${s}</b>.`;
+  else explain=`D’abord les dizaines, ensuite les unités : ${a} + ${t} = ${a+t}, puis + ${u} → <b>${s}</b>.`;
+  return {text:`${a} + ${b}`,answer:s,explain};
+}
+function genSub(){
+  const a=rnd(32,99);
+  if(Math.random()<.3){
+    const b=10*rnd(1,Math.floor((a-19)/10))+9,d=a-b;
+    return {text:`${a} − ${b}`,answer:d,explain:`Retirer ${b}, c’est retirer ${b+1} puis rendre 1 : ${a} − ${b+1} = ${a-b-1}, + 1 → <b>${d}</b>.`};
+  }
+  const b=rnd(11,a-10),d=a-b,nt=Math.ceil(b/10)*10;
+  if(nt===b)return {text:`${a} − ${b}`,answer:d,explain:`On retire seulement des dizaines : ${a} − ${b} = <b>${d}</b>.`};
+  const g1=nt-b,g2=a-nt;
+  return {text:`${a} − ${b}`,answer:d,explain:`Monte de ${b} jusqu’à ${a}, comme pour rendre la monnaie : ${b} → ${nt} (+${g1}), puis ${nt} → ${a} (+${g2}). Total : ${g1} + ${g2} = <b>${d}</b>.`};
+}
+function explainMult(x,y){ // x <= y
+  const p=x*y;
+  if(x===2)return `×2, c’est le double : double de ${y} = <b>${p}</b>.`;
+  if(x===5||y===5){const n=x===5?y:x;return `×5, c’est la moitié de ×10 : ${n} × 10 = ${n*10}, la moitié → <b>${p}</b>.`;}
+  if(y===9)return `×9, c’est ×10 moins une fois : ${x} × 10 = ${x*10}, − ${x} → <b>${p}</b>.<br>Vérif : ${Math.floor(p/10)} + ${p%10} = 9, comme pour tous les résultats de la table de 9 jusqu’à 9 × 10.`;
+  if(x===7&&y===8)return `Retiens la suite 5, 6, 7, 8 : <b>56</b> = 7 × 8.`;
+  if(x===4||y===4){const n=x===4?y:x;return `×4, c’est le double du double : ${n} → ${2*n} → <b>${p}</b>.`;}
+  if(x===6&&y%2===0)return `6 × un nombre pair : le résultat finit par ce même chiffre. 6 × ${y} = <b>${p}</b>.`;
+  if(y===8)return `×8, c’est doubler trois fois : ${x} → ${2*x} → ${4*x} → <b>${p}</b>.`;
+  return `Pars du résultat voisin : ${x} × ${y-1} = ${x*(y-1)}, + ${x} → <b>${p}</b>.`;
+}
+function genMult(){const {key,x,y}=pickFact(F_MUL);const [p,q]=swap(x,y);return {key,text:`${p} × ${q}`,answer:x*y,explain:explainMult(x,y)};}
+function genDiv(){
+  const {key,x,y}=pickFact(F_DIV),p=x*y;
+  const explain=`C’est la table à l’envers : ${x} × ${y} = ${p}, donc la réponse est <b>${y}</b>.`;
+  return {key,text:Math.random()<.5?`${p} ÷ ${x}`:`${x} × ? = ${p}`,answer:y,explain};
+}
+function genMultBig(){
+  const r=Math.random();
+  if(r<.5){
+    const a=rnd(3,9);let b=rnd(12,49);if(b%10===0)b++;const u=b%10,t=b-u;
+    return {text:`${a} × ${b}`,answer:a*b,explain:`Coupe ${b} en ${t} + ${u} : ${a} × ${t} = ${a*t}, ${a} × ${u} = ${a*u}. ${a*t} + ${a*u} = <b>${a*b}</b>.`};
+  }
+  if(r<.67){const n=2*rnd(7,49);return {text:`${n} × 5`,answer:n*5,explain:`×5, c’est ×10 puis la moitié : ${n} × 10 = ${n*10}, la moitié → <b>${n*5}</b>.`};}
+  if(r<.84){
+    const n=rnd(12,45),d1=Math.floor(n/10),d2=n%10;
+    let explain=`×11, c’est ×10 + une fois : ${n} × 10 = ${n*10}, + ${n} → <b>${n*11}</b>.`;
+    if(d1+d2<=9)explain+=`<br>Raccourci : écarte les chiffres et glisse leur somme au milieu : ${d1} (${d1}+${d2}) ${d2} → ${n*11}.`;
+    return {text:`${n} × 11`,answer:n*11,explain};
+  }
+  const n=4*rnd(2,12);
+  return {text:`${n} × 25`,answer:n*25,explain:`×25, c’est ×100 puis ÷4 (car 4 × 25 = 100) : ${n} × 100 = ${sp(n*100)}, la moitié ${sp(n*50)}, encore la moitié → <b>${sp(n*25)}</b>.`};
+}
+function genPct(){
+  const t=pick(['10','50','25','20','5','1','75','swap','10','20']);let base,ans,explain;
+  switch(t){
+    case '10':base=10*rnd(2,60);ans=base/10;explain=`10 %, c’est diviser par 10 : ${base} ÷ 10 = <b>${ans}</b>.`;break;
+    case '50':base=2*rnd(8,150);ans=base/2;explain=`50 %, c’est la moitié : moitié de ${base} = <b>${ans}</b>.`;break;
+    case '25':base=4*rnd(3,50);ans=base/4;explain=`25 %, c’est un quart, donc la moitié de la moitié : ${base} → ${base/2} → <b>${ans}</b>.`;break;
+    case '20':base=10*rnd(2,40);ans=base/5;explain=`20 %, c’est 2 × 10 % : 10 % de ${base} = ${base/10}, × 2 → <b>${ans}</b>.`;break;
+    case '5':base=20*rnd(1,20);ans=base/20;explain=`5 %, c’est la moitié de 10 % : 10 % de ${base} = ${base/10}, la moitié → <b>${ans}</b>.`;break;
+    case '1':base=100*rnd(2,30);ans=base/100;explain=`1 %, c’est diviser par 100 : ${sp(base)} ÷ 100 = <b>${ans}</b>.`;break;
+    case '75':base=4*rnd(3,30);ans=base*3/4;explain=`75 %, ce sont trois quarts : un quart de ${base} = ${base/4}, × 3 → <b>${ans}</b>.`;break;
+    default:{
+      if(Math.random()<.5){const p=2*rnd(2,12);ans=p/2;
+        return {text:`${p} % de 50`,answer:ans,explain:`On peut inverser : ${p} % de 50 = 50 % de ${p}, c’est-à-dire la moitié de ${p} → <b>${ans}</b>.`};}
+      const p=4*rnd(1,10);ans=p/4;
+      return {text:`${p} % de 25`,answer:ans,explain:`On peut inverser : ${p} % de 25 = 25 % de ${p}, c’est-à-dire le quart de ${p} → <b>${ans}</b>.`};
+    }
+  }
+  return {text:`${t} % de ${sp(base)}`,answer:ans,explain};
+}
+function genPrix(){
+  const t=pick(['-10','-20','-25','-50','-30','-20','+10','+20']);
+  const pct=Math.abs(+t),down=t[0]==='-',P=pct===25?20*rnd(1,10):10*rnd(2,30);
+  const part=P*pct/100,fin=down?P-part:P+part;
+  const how={10:'÷ 10',20:'2 × 10 %',25:'un quart',50:'la moitié',30:'3 × 10 %'}[pct];
+  const text=down?`Un article à ${P} € soldé −${pct} %. Nouveau prix ?`:`Un abonnement à ${P} € augmente de ${pct} %. Nouveau prix ?`;
+  let explain=`${pct} % de ${P} = ${part} (${how}). ${P} ${down?'−':'+'} ${part} = <b>${fin} €</b>.`;
+  if(down)explain+=`<br>Raccourci : −${pct} %, c’est payer ${100-pct} % du prix.`;
+  return {text,answer:fin,unit:'€',explain};
+}
+
+/* ---------- Le parcours ---------- */
+const SKILLS=[
+  {id:'amis',title:'Les amis de 10',kind:'coeur',target:3000,gen:genAmis,short:'7 + ? = 10',
+   lesson:`<p>Deux nombres sont « amis de 10 » quand ils font 10 ensemble. Il n’y a que cinq paires :</p>
+     <div class="pairs"><span>1 + 9</span><span>2 + 8</span><span>3 + 7</span><span>4 + 6</span><span>5 + 5</span></div>
+     <p><b>Pourquoi c’est la base :</b> beaucoup de calculs passent par 10.</p>
+     <div class="ex">8 + 5 → 8 + 2 = 10, il reste 3 → 13</div>
+     <p><b>Astuce :</b> regarde tes mains. 3 doigts levés, 7 baissés.</p>`},
+  {id:'add20',title:'Additions jusqu’à 20',kind:'coeur',target:3000,gen:genAdd20,short:'8 + 7',
+   lesson:`<p>De 2 + 2 à 9 + 9, il y a <b>36 additions</b> de base (8 + 7 et 7 + 8 comptent pour une). Le but : les connaître sans compter.</p>
+     <ul><li><b>Les doubles</b> sont tes repères : 6 + 6 = 12, 7 + 7 = 14, 8 + 8 = 16.</li>
+     <li><b>Presque doubles</b> : 7 + 8 = 7 + 7 + 1 = 15.</li>
+     <li><b>Passer par 10</b> : 8 + 6 → 8 + 2 = 10, il reste 4 → 14.</li></ul>
+     <p>Au début tu utilises l’astuce. À force de répéter, la réponse vient toute seule.</p>`},
+  {id:'double',title:'Doubles et moitiés',kind:'methode',target:6000,gen:genDouble,short:'Double de 38',
+   lesson:`<p>Doubler et couper en deux servent partout : ×2, ×4, ×5, les pourcentages, les soldes.</p>
+     <p><b>La méthode :</b> coupe le nombre en dizaines et unités, traite chaque morceau, puis recolle.</p>
+     <div class="ex">Double de 38 → 60 + 16 = 76</div>
+     <div class="ex">Moitié de 74 → 35 + 2 = 37</div>`},
+  {id:'add2',title:'Additions à deux chiffres',kind:'methode',target:8000,gen:genAdd2,short:'47 + 25',
+   lesson:`<p>De tête, on calcule de gauche à droite, comme on lit.</p>
+     <p><b>Les dizaines d’abord :</b></p>
+     <div class="ex">47 + 25 → 47 + 20 = 67, puis + 5 = 72</div>
+     <p><b>Pour 8, 9, 18, 19, 29… arrondis puis corrige :</b></p>
+     <div class="ex">36 + 29 → 36 + 30 = 66, puis − 1 = 65</div>`},
+  {id:'sub',title:'Soustractions',kind:'methode',target:9000,gen:genSub,short:'83 − 47',
+   lesson:`<p><b>Monte au lieu de retirer.</b> Cherche de combien il faut monter, comme quand on rend la monnaie.</p>
+     <div class="ex">83 − 47 → de 47 à 50 : +3, de 50 à 83 : +33 → 36</div>
+     <p><b>Pour 9, 19, 29…</b> retire la dizaine ronde juste au-dessus, puis rends 1.</p>
+     <div class="ex">64 − 19 → 64 − 20 = 44, + 1 = 45</div>`},
+  {id:'mult',title:'Tables de multiplication',kind:'coeur',target:3000,gen:genMult,short:'7 × 8',
+   lesson:`<p>3 × 8 = 8 × 3 : de 2 à 9, il n’y a que <b>36 multiplications</b> à retenir.</p>
+     <ul><li><b>×2</b> : le double.</li>
+     <li><b>×4</b> : le double du double. 7 → 14 → 28.</li>
+     <li><b>×5</b> : la moitié de ×10. 8 × 5 → 80 → 40.</li>
+     <li><b>×8</b> : doubler trois fois. 3 → 6 → 12 → 24.</li>
+     <li><b>×9</b> : ×10 moins une fois. 9 × 7 = 70 − 7 = 63.</li>
+     <li><b>6 × pair</b> finit par le même chiffre : 6 × 4 = 24, 6 × 6 = 36, 6 × 8 = 48.</li>
+     <li><b>5, 6, 7, 8</b> : 56 = 7 × 8.</li></ul>
+     <p>Les grands produits (comme 6 × 8 ou 7 × 8) sont en moyenne plus longs à retrouver que les petits : les chercheurs appellent ça l’effet de taille. L’app te ressort plus souvent ceux que tu rates.</p>`},
+  {id:'div',title:'Divisions',kind:'coeur',target:3000,gen:genDiv,short:'42 ÷ 6',
+   lesson:`<p>Les programmes demandent de connaître les tables « dans les deux sens ». Une division, c’est une table lue à l’envers.</p>
+     <div class="ex">42 ÷ 6 → 6 × ? = 42 → 6 × 7 = 42, donc 7</div>
+     <p>Si tu connais tes tables, tu connais déjà tes divisions. Il faut juste le réflexe de les lire dans l’autre sens.</p>`},
+  {id:'multbig',title:'Grandes multiplications',kind:'methode',target:12000,gen:genMultBig,short:'7 × 24',
+   lesson:`<p><b>Découpe :</b> multiplie les dizaines et les unités séparément, puis additionne.</p>
+     <div class="ex">7 × 24 → 140 + 28 = 168</div>
+     <p><b>×5</b>, c’est ×10 puis la moitié.</p><div class="ex">46 × 5 → 460 → 230</div>
+     <p><b>×11</b>, c’est ×10 + une fois.</p><div class="ex">23 × 11 → 230 + 23 = 253</div>
+     <p><b>×25</b>, c’est ×100 puis deux fois la moitié.</p><div class="ex">16 × 25 → 1 600 → 800 → 400</div>`},
+  {id:'pct',title:'Pourcentages',kind:'methode',target:9000,gen:genPct,short:'20 % de 45',
+   lesson:`<p>« Pour cent » veut dire « sur 100 ». Presque tout part de <b>10 %</b>, qui revient à diviser par 10.</p>
+     <div class="ptable"><b>50 %</b><span>la moitié</span><b>25 %</b><span>le quart (la moitié de la moitié)</span><b>75 %</b><span>trois quarts</span><b>10 %</b><span>÷ 10</span><b>20 %</b><span>2 × 10 %</span><b>5 %</b><span>la moitié de 10 %</span><b>1 %</b><span>÷ 100</span></div>
+     <p><b>On peut inverser :</b> x % de y = y % de x, car les deux valent x × y ÷ 100.</p>
+     <div class="ex">8 % de 50 = 50 % de 8 = 4</div>`},
+  {id:'prix',title:'Soldes et augmentations',kind:'methode',target:12000,gen:genPrix,short:'60 € −25 %',
+   lesson:`<p>Calcule le pourcentage, puis retire-le (soldes) ou ajoute-le (augmentation).</p>
+     <div class="ex">50 € −20 % → 20 % de 50 = 10 → 40 €</div>
+     <div class="ex">300 € +10 % → 10 % de 300 = 30 → 330 €</div>
+     <p><b>Raccourci :</b> −20 %, c’est payer 80 %. −25 %, c’est payer les trois quarts.</p>
+     <p><b>Piège :</b> −50 % puis +50 % ne ramène pas au prix de départ. 100 → 50 → 75.</p>`}
+];
+const SK=Object.fromEntries(SKILLS.map(s=>[s.id,s]));
+const KIND={
+  coeur:{label:'Par cœur',why:()=>`À savoir par cœur : la réponse doit venir sans calculer. Beaucoup d’enseignants prennent 2 à 3 secondes comme repère. L’astuce sert de béquille au début.`},
+  methode:{label:'Méthode',why:()=>`Rien à mémoriser : on apprend une technique et on l’applique. Prends ton temps, la vitesse vient avec la pratique.`}
+};
+
+/* ---------- Progression ---------- */
+function skillStats(id){
+  const h=(S.skills[id]&&S.skills[id].hist)||[],last=h.slice(-20),n=last.length;
+  const okMs=last.filter(r=>r.ok).map(r=>r.ms).sort((a,b)=>a-b);
+  return {n,total:h.length,acc:n?okMs.length/n:0,med:okMs.length?okMs[Math.floor(okMs.length/2)]:null};
+}
+function stars(id){
+  const {n,acc,med}=skillStats(id);
+  if(n<8)return 0;
+  if(n>=20&&acc>=.9&&med!==null&&med<=SK[id].target)return 3;
+  if(n>=15&&acc>=.85)return 2;
+  return acc>=.7?1:0;
+}
+function nextStarHint(id){
+  const t=SK[id].target/1000;
+  return ['Première étoile : au moins 8 questions, avec 70 % de bonnes réponses.',
+          'Deuxième étoile : 85 % de bonnes réponses sur tes 15 dernières questions.',
+          `Troisième étoile : 90 % de réussite sur 20 questions, et la moitié de tes réponses en moins de ${t} s.`,
+          'Étape maîtrisée. Les séances du jour la gardent en mémoire.'][stars(id)];
+}
+const starsHTML=s=>`<span class="stars" role="img" aria-label="${s} étoile${s>1?'s':''} sur 3">${[0,1,2].map(i=>ICON.star(i<s?'on':'off')).join('')}</span>`;
+function focusSkill(){for(const s of SKILLS)if(stars(s.id)<2)return s;return SKILLS.reduce((a,b)=>stars(b.id)<stars(a.id)?b:a,SKILLS[SKILLS.length-1]);}
+function knownFacts(){return [...F_AMIS,...F_ADD,...F_MUL].filter(f=>S.facts[f.key]&&S.facts[f.key].box>=3).length;}
+function levelInfo(xp){let n=1;while(50*(n+1)*n<=xp)n++;const base=50*n*(n-1),nx=50*(n+1)*n;return {n,cur:xp-base,need:nx-base};}
+function markSeen(id){(S.skills[id]||(S.skills[id]={hist:[],seen:false})).seen=true;save();}
+const seen=id=>!!(S.skills[id]&&S.skills[id].seen);
+function record(q,ok,ms){
+  const s=S.skills[q.skill]||(S.skills[q.skill]={hist:[],seen:true});
+  s.hist.push({ok,ms:Math.min(ms,60000)});if(s.hist.length>40)s.hist=s.hist.slice(-40);
+  if(q.key){
+    const f=S.facts[q.key]||(S.facts[q.key]={box:0,n:0});f.n++;
+    if(!ok)f.box=0;else if(ms<=SK[q.skill].target)f.box=Math.min(4,f.box+1);else f.box=Math.max(f.box,1);
+  }
+}
+
+/* ---------- Séances ---------- */
+const makeQ=id=>Object.assign(SK[id].gen(),{skill:id});
+function buildDaily(){
+  const f=focusSkill(),prev=SKILLS.slice(0,SKILLS.indexOf(f));
+  const nF=prev.length?6:10,main=[],rev=[];
+  for(let i=0;i<nF;i++)main.push(makeQ(f.id));
+  for(let i=0;i<10-nF;i++){
+    const w=prev.map(s=>3.5-stars(s.id));let r=Math.random()*w.reduce((a,b)=>a+b,0),k=0;
+    while(r>w[k]&&k<prev.length-1){r-=w[k];k++;}
+    rev.push(makeQ(prev[k].id));
+  }
+  const out=[];let a=0,b=0;
+  for(const p of [0,0,1,0,1,0,0,1,0,1]){if(p&&b<rev.length)out.push(rev[b++]);else if(a<main.length)out.push(main[a++]);else out.push(rev[b++]);}
+  return {focus:f,queue:out};
+}
+
+let view='home',viewArg=null,run=null,lastRun=null,resetArmed=false;
+
+function startRun(mode,skillId){
+  let queue=[];
+  if(mode==='daily'){const d=buildDaily();queue=d.queue;skillId=d.focus.id;}
+  else if(mode==='practice'){for(let i=0;i<10;i++)queue.push(makeQ(skillId));}
+  else queue=[makeQ(skillId)];
+  run={mode,skillId,queue,idx:0,first:0,firstOk:0,combo:0,maxCombo:0,xp:0,wrong:[],marks:[],input:'',state:'ask',qStart:0,token:0,
+       end:mode==='sprint'?Date.now()+60000:0,sprintScore:0,timer:null};
+  view='play';renderPlay();
+  if(mode==='sprint')run.timer=setInterval(tickSprint,100);
+}
+const cur=()=>run.queue[run.idx];
+
+function press(k){
+  if(!run||view!=='play')return;
+  if(run.state==='wrong'){if(k==='ok')next();return;}
+  if(run.state!=='ask')return;
+  if(k==='ok'){submit();return;}
+  if(k==='del')run.input=run.input.slice(0,-1);
+  else if(/^\d$/.test(k)&&run.input.length<6)run.input+=k;
+  updAns();
+  if(run.input.length>=String(cur().answer).length)submit();
+}
+function updAns(){const v=document.getElementById('ansv');if(v)v.innerHTML=run.input?sp(run.input):'<span class="caret"></span>';}
+function submit(){
+  const q=cur();if(!run.input)return;
+  const ms=Date.now()-run.qStart,ok=Number(run.input)===q.answer,sk=SK[q.skill],tok=++run.token;
+  const ans=document.getElementById('ans');
+  if(!q.retry){record(q,ok,ms);run.first++;if(ok)run.firstOk++;run.marks.push(ok);}
+  if(ok){
+    run.combo++;run.maxCombo=Math.max(run.maxCombo,run.combo);
+    let g=q.retry?5:10+(ms<=sk.target?5:0);if(run.combo%5===0)g+=10;
+    run.xp+=g;S.xp+=g;if(run.mode==='sprint')run.sprintScore++;
+    run.state='right';ans.classList.add('right');
+    const gain=document.getElementById('gain');gain.textContent=`+${g}`;gain.classList.remove('go-up');void gain.offsetWidth;gain.classList.add('go-up');
+    setTimeout(()=>{if(run&&run.token===tok)next();},run.mode==='sprint'?240:540);
+  }else{
+    run.combo=0;if(!q.retry)run.wrong.push(q);
+    ans.classList.add('wrong','shake');
+    if(run.mode==='sprint'){
+      run.state='show';
+      document.getElementById('hintline').innerHTML=`Réponse : <b>${sp(q.answer)}</b>`;
+      setTimeout(()=>{if(run&&run.token===tok)next();},1000);
+    }else{
+      run.state='wrong';document.getElementById('hintline').textContent='';
+      if(!q.retry&&run.queue.filter(x=>x.retry).length<3)run.queue.push(Object.assign({},q,{retry:true}));
+      document.getElementById('bottom').innerHTML=`<div class="fix" role="status">
+        <p class="t">La réponse était <b>${sp(q.answer)}${q.unit?' '+q.unit:''}</b></p>
+        <p>${q.explain}</p>
+        ${q.retry?'':'<p class="soft">Cette question reviendra à la fin de la séance.</p>'}
+        <button class="go" data-act="continue" id="cont">Continuer</button></div>`;
+      document.getElementById('cont').focus();
+    }
+  }
+  save();
+}
+function next(){
+  if(!run)return;
+  run.idx++;
+  if(run.mode==='sprint'){if(Date.now()>=run.end)return finish();run.queue.push(makeQ(run.skillId));}
+  if(run.idx>=run.queue.length)return finish();
+  renderPlay();
+}
+function tickSprint(){
+  if(!run)return;
+  const left=Math.max(0,run.end-Date.now()),b=document.getElementById('tbar'),t=document.getElementById('tleft');
+  if(b)b.style.transform=`scaleX(${left/60000})`;
+  if(t)t.textContent=Math.ceil(left/1000)+' s';
+  if(left<=0){clearInterval(run.timer);if(run.state==='ask')finish();}
+}
+function finish(){
+  clearInterval(run.timer);const r=run;
+  if(r.mode==='daily'){
+    const t=dayISO(0);
+    if(!S.days.includes(t)){S.streak=S.lastDay===dayISO(-1)?S.streak+1:1;S.lastDay=t;S.days.push(t);S.days=S.days.slice(-60);r.newDay=true;}
+    S.sessions++;
+  }
+  if(r.mode==='sprint'){r.prevBest=S.best[r.skillId]||0;r.record=r.sprintScore>r.prevBest;if(r.record)S.best[r.skillId]=r.sprintScore;}
+  save();lastRun=r;run=null;view='results';render();
+}
+
+/* ---------- Écrans ---------- */
+function render(){
+  if(view==='home')renderHome();
+  else if(view==='skill')renderSkill(viewArg);
+  else if(view==='intro')renderIntro();
+  else if(view==='results')renderResults();
+  window.scrollTo(0,0);
+}
+const topBar=()=>{const st=currentStreak(),lvl=levelInfo(S.xp);return `<header class="bar-top">
+  <span class="word">Calcul <b>Minute</b></span>
+  <span class="meta"><span class="tag" title="Jours d’affilée">${ICON.flame}${st} jour${st>1?'s':''}</span><span class="tag" title="${lvl.cur} / ${lvl.need} XP vers le niveau suivant">Niveau ${lvl.n}</span></span></header>`;};
+
+function renderHome(){
+  const f=focusSkill(),fi=SKILLS.indexOf(f),done=S.days.includes(dayISO(0)),known=knownFacts();
+  const L=['dim','lun','mar','mer','jeu','ven','sam'];let week='';
+  for(let i=-6;i<=0;i++){
+    const d=new Date();d.setDate(d.getDate()+i);const ok=S.days.includes(iso(d));
+    week+=`<div class="day ${ok?'done':''} ${i===0?'now':''}"><i>${ok?ICON.check:''}</i>${i===0?'auj.':L[d.getDay()]}</div>`;
+  }
+  const steps=SKILLS.map(s=>`<li class="${s===f?'focus':''}"><button data-act="skill:${s.id}">
+      <span class="name"><strong>${s.title}</strong><span><span class="${s.kind==='coeur'?'kind-c':'kind-m'}">${KIND[s.kind].label}</span> · ${s===f?'étape en cours':s.short}</span></span>
+      ${starsHTML(stars(s.id))}</button></li>`).join('');
+  $app.innerHTML=`${topBar()}
+  <div class="home">
+    <div class="col-a rise">
+      <section class="today" aria-labelledby="t-today">
+        <h1 id="t-today">${done?'Séance faite':f.title}</h1>
+        <p>${done?'Ta série est sauvée pour aujourd’hui. Une séance en plus fait quand même progresser.':
+          `Ta séance du jour : 10 questions, environ 3 minutes. ${fi>0?'Six sur cette étape, quatre pour réviser les précédentes.':'C’est la toute première étape.'}`}</p>
+        <button class="go ${done?'alt':''}" data-act="daily">${ICON.play}${done?'Séance en plus':'Commencer'}</button>
+      </section>
+      <section aria-label="Tes 7 derniers jours"><div class="week">${week}</div></section>
+      <section class="base" aria-labelledby="t-base">
+        <h3 id="t-base">Ta base par cœur</h3>
+        <p class="figure"><b>${known}</b><span class="soft">réflexes sur 81</span></p>
+        <div class="track" aria-hidden="true"><i style="transform:scaleX(${known/81})"></i></div>
+        <p class="soft">9 amis de 10, 36 additions et 36 multiplications. Un fait devient un réflexe quand tu le réussis vite plusieurs fois de suite.</p>
+      </section>
+    </div>
+    <div class="col-b rise">
+      <section class="sheet" aria-labelledby="t-path">
+        <h3 id="t-path">Ton parcours</h3>
+        <ol class="path">${steps}</ol>
+      </section>
+      <section class="guide" aria-labelledby="t-guide">
+        <h2 id="t-guide">Par cœur ou méthode ?</h2>
+        <p>C’est la distinction des programmes de l’école : des faits numériques à mémoriser, et des procédures pour calculer le reste. Les deux soulagent la mémoire de travail.</p>
+        <div class="two">
+          <div><h3>Par cœur</h3><ul><li>Compléments à 10</li><li>Additions jusqu’à 20 et doubles</li><li>Tables de multiplication, dans les deux sens</li></ul></div>
+          <div><h3>Méthode</h3><ul><li>Passer par 10, presque-doubles</li><li>Ajouter ou retirer 9, 19, 29…</li><li>Découper, arrondir, pourcentages</li></ul></div>
+        </div>
+        <p>Pourquoi quelques minutes par jour : s’interroger fait mieux retenir que relire, et des révisions espacées font mieux retenir que des révisions groupées. L’app fait les deux.</p>
+      </section>
+      <section class="sources" aria-labelledby="t-src">
+        <h3 id="t-src" style="color:var(--chalk)">Sources</h3>
+        <ol>
+          <li>Eduscol, ministère de l’Éducation nationale, <a href="https://eduscol.education.gouv.fr/sites/default/files/document/2026evaluationdebutcm1mathematiquesficheinterventionmemoriserfaitsnumeriquesprocedures-129508.pdf" target="_blank" rel="noopener">« Mémoriser des faits numériques et des procédures »</a>, évaluations de début de CM1. Le sprint de 60 s reprend le format de son exercice 6 (tables en 1 minute).</li>
+          <li>Roediger &amp; Karpicke (2006), « Test-Enhanced Learning », <i>Psychological Science</i> 17(3) : s’interroger améliore la rétention à long terme.</li>
+          <li>Cepeda et al. (2006), « Distributed practice in verbal recall tasks », <i>Psychological Bulletin</i> 132(3) : méta-analyse de l’effet d’espacement.</li>
+          <li>Campbell &amp; Graham (1985), <i>Canadian Journal of Psychology</i> : temps de réponse et erreurs augmentent avec la taille des nombres (effet de taille).</li>
+        </ol>
+      </section>
+      <footer class="foot"><span>Ta progression reste dans ce navigateur.</span>
+        <button class="textbtn ${resetArmed?'danger':''}" data-act="reset">${resetArmed?'Confirmer : tout effacer':'Remettre à zéro'}</button></footer>
+    </div>
+  </div>`;
+}
+
+function heatHTML(type){
+  const op=type==='mult'?'×':'+';
+  let h=`<div class="h">${op}</div>`;for(let y=2;y<=9;y++)h+=`<div class="h">${y}</div>`;
+  const lab=['raté','en cours','en cours','presque','réflexe'];
+  for(let x=2;x<=9;x++){
+    h+=`<div class="h">${x}</div>`;
+    for(let y=2;y<=9;y++){
+      const a=Math.min(x,y),b=Math.max(x,y),k=type==='mult'?`m${a}x${b}`:`a${a}+${b}`,f=S.facts[k];
+      const cls=!f?'':f.box===0?'b0':f.box<=2?'b1':f.box===3?'b2':'b3';
+      h+=`<div class="${cls}" title="${x} ${op} ${y} : ${f?lab[f.box]:'pas encore vu'}">${type==='mult'?x*y:x+y}</div>`;
+    }
+  }
+  return `<section class="map" aria-labelledby="t-map"><h3 id="t-map">Ta carte ${type==='mult'?'des tables':'des additions'}</h3>
+    <div class="heat">${h}</div>
+    <div class="legend"><span><i style="background:var(--slate-2)"></i>pas vu</span><span><i style="background:var(--bad-field)"></i>raté</span><span><i style="background:var(--mid-field)"></i>en cours</span><span><i style="background:var(--good-field)"></i>presque</span><span><i style="background:var(--good)"></i>réflexe</span></div></section>`;
+}
+function renderSkill(id){
+  const sk=SK[id],st=skillStats(id);markSeen(id);
+  $app.innerHTML=`${topBar()}<div class="page rise">
+    <button class="back" data-act="home">${ICON.back}Accueil</button>
+    <div class="head"><h2>${sk.title}</h2><p><span class="kind">${KIND[sk.kind].label}.</span> ${KIND[sk.kind].why()}</p></div>
+    <article class="sheet lesson">${sk.lesson}</article>
+    <div class="facts">
+      <div><b>${st.n?Math.round(st.acc*100)+' %':'–'}</b><span>de réussite</span></div>
+      <div><b>${st.med!==null?(st.med/1000).toFixed(1).replace('.',',')+' s':'–'}</b><span>temps médian</span></div>
+      <div><b>${S.best[id]||'–'}</b><span>record sprint</span></div>
+    </div>
+    ${id==='mult'?heatHTML('mult'):id==='add20'?heatHTML('add'):''}
+    <div class="acts">
+      <button class="go" data-act="practice:${id}">${ICON.play}10 questions</button>
+      <button class="go alt" data-act="sprint:${id}">Sprint 60 s</button>
+    </div>
+    <p class="soft">${starsHTML(stars(id))} ${nextStarHint(id)}</p>
+  </div>`;
+}
+function renderIntro(){
+  const f=focusSkill();
+  $app.innerHTML=`${topBar()}<div class="page rise">
+    <button class="back" data-act="home">${ICON.back}Accueil</button>
+    <div class="head"><h2>${f.title}</h2><p>Nouvelle étape, ${SKILLS.indexOf(f)+1} sur ${SKILLS.length}. <span class="kind">${KIND[f.kind].label}.</span> ${KIND[f.kind].why()}</p></div>
+    <article class="sheet lesson">${f.lesson}</article>
+    <div class="acts"><button class="go" data-act="go-daily">${ICON.play}J’ai compris, on y va</button></div>
+  </div>`;
+}
+function padHTML(){
+  const k=['1','2','3','4','5','6','7','8','9'].map(d=>`<button class="key" data-act="key:${d}">${d}</button>`).join('');
+  return `<div class="pad">${k}<button class="key" data-act="key:del" aria-label="Effacer">${ICON.del}</button><button class="key" data-act="key:0">0</button><button class="key ok" data-act="key:ok">OK</button></div>`;
+}
+function renderPlay(){
+  const q=cur(),sk=SK[q.skill],sprint=run.mode==='sprint';
+  run.input='';run.state='ask';run.qStart=Date.now();
+  let prog;
+  if(sprint)prog=`<div class="timer" aria-hidden="true"><i id="tbar" style="transform:scaleX(${Math.max(0,(run.end-Date.now())/60000)})"></i></div><span class="tag num" id="tleft">${Math.ceil((run.end-Date.now())/1000)} s</span><span class="tag num">${ICON.check}${run.sprintScore}</span>`;
+  else{
+    const total=run.queue.filter(x=>!x.retry).length;let t='';
+    for(let i=0;i<total;i++)t+=`<i class="${i<run.marks.length?(run.marks[i]?'ok':'ko'):(i===run.marks.length&&!q.retry?'now':'')}"></i>`;
+    prog=`<div class="ticks" role="img" aria-label="Question ${Math.min(run.marks.length+1,total)} sur ${total}">${t}</div>`;
+  }
+  $app.innerHTML=`<div class="play">
+    <div class="ptop"><button class="round" data-act="quit" aria-label="Quitter la séance">${ICON.close}</button>${prog}
+      ${run.combo>=3?`<span class="tag streak">${ICON.flame}×${run.combo}</span>`:''}</div>
+    <div class="board">
+      <p class="q ${q.text.length>16?'long':''}">${q.text}</p>
+      <div class="ans" id="ans" aria-live="polite"><span id="ansv"><span class="caret"></span></span>${q.unit?`<span class="unit">${q.unit}</span>`:''}</div>
+      <div class="gain" id="gain" aria-hidden="true"></div>
+    </div>
+    <p class="hint-line" id="hintline">${sk.title}${q.retry?' · deuxième essai':''}</p>
+    <div id="bottom">${padHTML()}</div>
+  </div>`;
+}
+function renderResults(){
+  const r=lastRun,sk=SK[r.skillId],sprint=r.mode==='sprint',pctOk=r.first?r.firstOk/r.first:0;
+  const mood=sprint?(r.record?`Nouveau record. Ton ancien : ${r.prevBest}.`:`Ton record : ${S.best[r.skillId]}.`)
+    :pctOk===1?'Sans faute.':pctOk>=.8?'Très solide.':pctOk>=.6?'Bonne séance, ça rentre.':'Tes erreurs vont revenir dans les prochaines séances : c’est comme ça qu’on apprend.';
+  const line=q=>q.unit?`${q.text} → ${sp(q.answer)} ${q.unit}`:q.text.includes('?')?q.text.replace('?',`<u>${sp(q.answer)}</u>`):`${q.text} = ${sp(q.answer)}`;
+  const wrong=r.wrong.slice(0,8).map(q=>`<li><b>${line(q)}</b><span>${q.explain.replace(/<br>/g,' ')}</span></li>`).join('');
+  $app.innerHTML=`${topBar()}<div class="page rise">
+    <p class="score">${sprint?`${r.sprintScore}<span> en 60 s</span>`:`${r.firstOk}<span> / ${r.first}</span>`}</p>
+    <h2>${sprint?'Temps écoulé':r.mode==='daily'?'Séance terminée':'Entraînement terminé'}</h2>
+    <p>${mood}</p>
+    <div class="chips"><span class="tag">+${r.xp} XP</span><span class="tag">Meilleure série : ${r.maxCombo}</span><span class="tag">${starsHTML(stars(r.skillId))}</span></div>
+    ${r.newDay?`<p class="flag">${ICON.flame}${S.streak>1?`${S.streak} jours d’affilée. Rendez-vous demain.`:'Premier jour de ta série. Rendez-vous demain.'}</p>`:''}
+    ${wrong?`<section class="sheet"><h3>À retenir</h3><ul class="review">${wrong}</ul></section>`:''}
+    <p class="soft">${sk.title} : ${nextStarHint(r.skillId)}</p>
+    <div class="acts">
+      <button class="go" data-act="home">Retour à l’accueil</button>
+      <button class="go alt" data-act="${r.mode==='daily'?'daily':r.mode+':'+r.skillId}">${sprint?'Relancer un sprint':'Encore une'}</button>
+    </div></div>`;
+}
+
+/* ---------- Interactions ---------- */
+$app.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const [act,arg]=b.dataset.act.split(':');
+  if(act!=='reset')resetArmed=false;
+  switch(act){
+    case 'home':view='home';render();break;
+    case 'skill':view='skill';viewArg=arg;render();break;
+    case 'daily':{const f=focusSkill();if(!seen(f.id)){view='intro';render();}else startRun('daily');break;}
+    case 'go-daily':markSeen(focusSkill().id);startRun('daily');break;
+    case 'practice':markSeen(arg);startRun('practice',arg);break;
+    case 'sprint':markSeen(arg);startRun('sprint',arg);break;
+    case 'key':press(arg);break;
+    case 'continue':next();break;
+    case 'quit':if(run){clearInterval(run.timer);run=null;}view='home';render();break;
+    case 'reset':if(resetArmed){S=blank();save();resetArmed=false;}else resetArmed=true;renderHome();break;
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(view!=='play'||!run||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(/^\d$/.test(e.key)){press(e.key);e.preventDefault();}
+  else if(e.key==='Backspace'){press('del');e.preventDefault();}
+  else if(e.key==='Enter'){press('ok');e.preventDefault();}
+  else if(e.key==='Escape'){clearInterval(run.timer);run=null;view='home';render();}
+});
+render();
+</script>
