@@ -19,13 +19,16 @@ C'est une web app installable (PWA) : elle s'ajoute à l'écran d'accueil du té
 
 ## Mise en ligne
 
-Pas encore faite. La web app a besoin d'une adresse en HTTPS (GitHub Pages, Vercel…) pour être installable sur un téléphone. Le dépôt est privé : voir `SUIVI.md`, points ouverts.
+La web app est servie par GitHub Pages depuis la branche `main` : **https://pittilloni.github.io/calcul-minute/**
 
-Les sources (Eduscol et articles de recherche) sont listées en bas de l'écran d'accueil de l'app.
+Chaque `git push` sur `main` la met à jour en une à deux minutes.
+
+**L'installer sur un téléphone :** ouvrir l'adresse, puis « Sur l'écran d'accueil » dans le menu de partage (Safari, iPhone) ou « Installer l'application » dans le menu (Chrome, Android).
 
 ## Liens
 
-- **Aperçu en ligne** : https://claude.ai/artifact/BaY4a6BN3MzHuvqdK6782v (artifact Claude privé : seul son propriétaire, et les personnes à qui il le partage, peuvent l'ouvrir)
+- **Web app** : https://pittilloni.github.io/calcul-minute/
+- **Aperçu Claude** : https://claude.ai/artifact/BaY4a6BN3MzHuvqdK6782v (artifact Claude privé : seul son propriétaire, et les personnes à qui il le partage, peuvent l'ouvrir)
 - **Code** : https://github.com/PITTILLONI/calcul-minute
 - **Suivi du projet** : [SUIVI.md](SUIVI.md), mis à jour à la fin de chaque session de travail
 

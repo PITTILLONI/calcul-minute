@@ -9,10 +9,12 @@ Journal tenu à la fin de chaque session de travail. La session la plus récente
 1. **Version 1 de l'app.** Un seul fichier `calcul-minute.html` : 10 étapes (amis de 10, additions jusqu'à 20, doubles et moitiés, additions à deux chiffres, soustractions, tables, divisions, grandes multiplications, pourcentages, soldes), séance du jour de 10 questions, entraînement libre, sprint de 60 s, XP, niveaux, série de jours, étoiles par étape, carte des tables.
 2. **Refonte du design** avec le skill design-combo (Taste + UI UX Pro Max). Direction « l'objet est la page » : l'app est une ardoise d'écolier, les leçons sont des feuilles de cahier perforées. Polices Anton et Work Sans. Pensé d'abord pour le téléphone.
 3. **Vérification des contenus.** Ajout d'une section Sources dans l'app. Deux affirmations corrigées : le seuil de 3 secondes (présenté maintenant comme un repère d'enseignants, pas un résultat de recherche) et la liste des tables « les plus coriaces » (remplacée par l'effet de taille).
-4. **Mise sur GitHub** dans un dépôt privé, avec README, liens et ce journal.
+4. **Mise sur GitHub** dans un dépôt d'abord privé, avec README, liens et ce journal.
 
 5. **Structure d'app.** Retour de l'utilisateur : « ça ressemble encore à du web ». L'écran est maintenant fixe, avec quatre onglets en bas (Séance, Parcours, Progrès, Repères), un bouton d'action ancré, des écrans qui glissent et une correction qui monte du bas.
 6. **Web app installable.** Ajout de `build.sh`, `index.html`, `manifest.webmanifest`, `sw.js` et des icônes. Vérifié en local : manifeste lu, service worker enregistré, polices chargées, pas de défilement horizontal à 375 px.
+
+7. **Mise en ligne.** Avec l'accord du propriétaire, le dépôt est passé en public et GitHub Pages est activé sur `main` : https://pittilloni.github.io/calcul-minute/
 
 ### Décisions
 
@@ -31,14 +33,14 @@ Journal tenu à la fin de chaque session de travail. La session la plus récente
 
 ### Points ouverts
 
-- **Mise en ligne de la web app : pas faite.** Elle demande une adresse publique en HTTPS. Le dépôt est privé ; GitHub Pages sur un dépôt privé demande une offre payante, et le site publié est de toute façon public. À décider par le propriétaire.
 - L'installation sur un vrai téléphone (iOS et Android) n'a pas été testée.
 
 - La référence « Glénans » demandée comme source n'a pas été identifiée (seule l'école de voile est connue sous ce nom). À préciser.
 - La progression ne suit pas l'utilisateur d'un appareil à l'autre.
-- Le dépôt est privé et l'artifact aussi : les liens ne s'ouvrent que pour le propriétaire.
+- L'artifact Claude reste privé : seul le propriétaire peut l'ouvrir.
 
 ### Liens
 
-- App : https://claude.ai/artifact/BaY4a6BN3MzHuvqdK6782v
+- Web app : https://pittilloni.github.io/calcul-minute/
+- Aperçu Claude : https://claude.ai/artifact/BaY4a6BN3MzHuvqdK6782v
 - Dépôt : https://github.com/PITTILLONI/calcul-minute
